@@ -47,7 +47,7 @@ class NlpProcessor:
         """Convert all characters to lowercase from list of tokenized words"""
         new_words = []
         for word in words:
-            if not re.match(r'\d', word):
+            if not bool(re.search(r'\d', word)):
                 new_words.append(word)
         return new_words
 
@@ -91,16 +91,6 @@ class NlpProcessor:
         return lemmas
 
     @staticmethod
-    def normalize(words: List[str]) -> List[str]:
-        words = NlpProcessor.remove_non_ascii(words)
-        words = NlpProcessor.remove_numbers(words)
-        words = NlpProcessor.to_lowercase(words)
-        words = NlpProcessor.remove_punctuation(words)
-        words = NlpProcessor.remove_stopwords(words)
-        words = NlpProcessor.lemmatize_verbs(words)
-        return words
-
-    @staticmethod
     def word_tokenize(text: str) -> List[str]:
         # or words = nltk.word_tokenize(sample)
         sentences = NlpProcessor.get_sentences(text)
@@ -112,6 +102,16 @@ class NlpProcessor:
         sentences = re.split(r'[.!?]', text)
         sentences = [x.strip() for x in sentences]
         return Helpers.remove_empty_list_items(sentences)
+
+    @staticmethod
+    def normalize(words: List[str]) -> List[str]:
+        words = NlpProcessor.remove_non_ascii(words)
+        words = NlpProcessor.remove_numbers(words)
+        words = NlpProcessor.to_lowercase(words)
+        words = NlpProcessor.remove_punctuation(words)
+        words = NlpProcessor.remove_stopwords(words)
+        words = NlpProcessor.lemmatize_verbs(words)
+        return words
 
     @staticmethod
     def preprocess(text):

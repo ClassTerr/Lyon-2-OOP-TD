@@ -42,20 +42,20 @@ class Corpus:
         return self.__author_repository.count()
 
     def get_authors_of_document(self, doc: Document) -> List[Author]:
-        return cast(List[Author], [self.__author_repository.get(x) for x in doc.authors])
+        return cast(List[Author], [self.__author_repository.get(x) for x in doc.get_authors()])
 
     def add_document(self, doc: Document):
         if not doc.is_valid():
             raise DocumentInvalidException(f"can't add invalid {doc} to {self}")
 
-        self.__document_repository.add(doc.id, doc)
+        self.__document_repository.add(doc.get_id(), doc)
 
-        for auth_name in doc.authors:
+        for auth_name in doc.get_authors():
             author = self.__author_repository.get(auth_name)
 
             if author is None:
                 author = Author(auth_name)
-                author.add_publication(doc.id)
+                author.add_publication(doc.get_id())
                 self.__author_repository.add(auth_name, Author(auth_name))
 
     def preview(self, limit: int = 10) -> str:
@@ -64,7 +64,8 @@ class Corpus:
         table_str = "Nothing was found"
 
         if docs:
-            df = DataFrame([[x.date, Helpers.truncate_str(x.title)] for x in docs], columns=['Date', 'Title'])
+            df = DataFrame([[x.get_date(), Helpers.truncate_str(x.get_title())] for x in docs],
+                           columns=['Date', 'Title'])
             df.index += 1
             table_str = str(df)
 
@@ -87,7 +88,7 @@ class Corpus:
 
         return result
 
-    def get_semantic_statistics(self):
+    def get_word_statistics(self):
         all_documents = self.get_documents()
         docs_words = [x.get_words() for x in all_documents]
 
@@ -112,7 +113,7 @@ class Corpus:
             freq.append([word] + word_count_in_documents + [word_total_freq] + [documents_with_word])
 
         statistic_headers = ['Word frequency', 'Documents with word']
-        document_headers = ["Doc " + Helpers.truncate_str(key.title, 16) for key in all_documents]
+        document_headers = ["Doc " + Helpers.truncate_str(key.get_title(), 16) for key in all_documents]
         table_columns = ['Word'] + document_headers + statistic_headers
         df = DataFrame(freq, columns=table_columns)
         df = df.sort_values(statistic_headers, ascending=[False, False]).reset_index(drop=True)
@@ -125,4 +126,4 @@ class Corpus:
         return self.preview()
 
     def __repr__(self):
-        return f"Corpus: {self.name}: documents: {self.get_documents_count()}"
+        return f"Corpus: {self.name}: documents count: {self.get_documents_count()}"

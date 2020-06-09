@@ -36,7 +36,11 @@ class ConsoleUI:
 
     def load_corpuses(self):
         print("Loading corpuses...")
-        existed_corpuses = next(os.walk(self.__data_path))[1]
+
+        if not os.path.exists(self.__data_path):
+            os.makedirs(self.__data_path)
+
+        existed_corpuses = list(next(os.walk(self.__data_path))[1])
 
         for c_name in existed_corpuses:
             self.corpuses[c_name.lower()] = Corpus(c_name, self.__data_path)
@@ -49,8 +53,8 @@ class ConsoleUI:
             "crawl": (self.crawl, ["topic-name"],
                       "Download data from internet related to specified corpus"),
             "crawl-std": (self.crawl_std, [],
-                          "Download default set of corpora from internet. Useful for quick start"),
-            "preview": (self.preview, ["[topic]", "[documents-count]"],
+                          "Download default corpora set from internet. Useful for quick start"),
+            "preview": (self.preview, ["corpus"],
                         "Show brief information about all corpora or single corpus if name specified"),
             "search": (self.search, ["text"], "Show documents containing specified text"),
             "concorde": (self.concorde, ["text", "[context-length]"], "Search text and show context"),
@@ -83,6 +87,10 @@ class ConsoleUI:
         self.__exit_requested = True
 
     def ls(self):
+        if not self.corpuses:
+            PrintHelper.print_warn("No corpuses available. Please, run crawl or crawl-std commands")
+            return
+
         PrintHelper.print_ok("Available corpuses: ")
         for c in self.corpuses.values():
             print(c.name)
@@ -113,7 +121,6 @@ class ConsoleUI:
             pass
 
         corpus.save()
-        PrintHelper.print_ok(f"Crawling {topic_name} done...")
 
     def crawl_std(self):
         for t in self.__std_topics:
@@ -136,7 +143,8 @@ class ConsoleUI:
             print("Nothing was found")
             return
 
-        df = DataFrame([[x.date, Helpers.truncate_str(x.title)] for x in set(res)], columns=['Date', 'Document title'])
+        df = DataFrame([[x.get_date(), Helpers.truncate_str(x.get_title())] for x in set(res)],
+                       columns=['Date', 'Document title'])
         df.index += 1
 
         print(df)
@@ -160,7 +168,7 @@ class ConsoleUI:
         data = []
 
         for doc, (left, mid, right) in res:
-            data.append([left, mid, right])
+            data.append([Helpers.truncate_str(doc.get_title()), left, mid, right])
 
         df = DataFrame(data, columns=['Document title', 'Left context', "Text", "Right context"])
 
@@ -178,7 +186,7 @@ class ConsoleUI:
             self.__wrong_usage("preview", f"corpus {corpus_name} not found")
             return
 
-        df = corpus.get_semantic_statistics()
+        df = corpus.get_word_statistics()
 
         print(df)
 
@@ -201,18 +209,11 @@ class ConsoleUI:
             print('\n')
 
     def preview(self, args: List[str]):
-        if len(args) > 2:
-            self.__wrong_arguments("preview")
+        if not args:
+            self.__wrong_arguments("search")
             return
 
-        it = iter(args)
-        topic_name: str = next(it, None)
-        doc_count = next(it, str(self.__preview_size))
-        if doc_count.isdigit():
-            doc_count = int(doc_count)
-        else:
-            self.__wrong_usage("preview", "documents-count need to be positive integer")
-            return
+        topic_name = ' '.join(args)
 
         if topic_name is None:
             for c in self.corpuses.values():
@@ -225,7 +226,7 @@ class ConsoleUI:
                 self.__wrong_usage("preview", f"corpus {topic_name} not found")
                 return
 
-            print(corpus.preview(doc_count))
+            print(corpus.preview())
         pass
 
     def start(self):
