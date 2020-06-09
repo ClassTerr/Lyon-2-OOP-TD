@@ -1,0 +1,2 @@
+class DocumentInvalidException(Exception):
+    pass
