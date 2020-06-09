@@ -1,4 +1,5 @@
 import pandas as pd
+
 from ConsoleUI import ConsoleUI
 
 pd.set_option('display.max_rows', 1500)

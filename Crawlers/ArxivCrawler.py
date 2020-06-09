@@ -2,6 +2,7 @@ import urllib
 import urllib.parse
 from datetime import datetime
 from typing import List
+
 import xmltodict as x2d
 
 from Crawlers.Crawler import Crawler
@@ -12,7 +13,6 @@ from Entities.Document import Document
 class ArxivCrawler(Crawler):
 
     def get_documents_by_topic(self, topic_name: str, limit: int = 100) -> List[Document]:
-
         urlencoded_topic = urllib.parse.quote_plus(topic_name)
         url = f'http://export.arxiv.org/api/query?search_query={urlencoded_topic}&max_results={limit}'
         xml = urllib.request.urlopen(url).read()

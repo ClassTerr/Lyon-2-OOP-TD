@@ -1,11 +1,8 @@
 import itertools
-
-from gensim.summarization.summarizer import summarize
-import re
 from datetime import datetime
 from typing import List, Tuple, Dict
 
-from numpy import take
+from gensim.summarization.summarizer import summarize
 
 from Helpers import Helpers
 from NlpProcessor import NlpProcessor

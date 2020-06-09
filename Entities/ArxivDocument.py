@@ -1,5 +1,4 @@
 from Entities.Document import Document
-from Helpers import Helpers
 
 
 class ArxivDocument(Document):
